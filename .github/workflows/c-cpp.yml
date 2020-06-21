@@ -1,0 +1,59 @@
+name: C/C++ CI
+
+on:
+  pull_request:
+    branches:
+      - master
+      - asm
+      - vector
+      - bigint
+      - bigint-opt
+
+jobs:
+  build:
+    
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: dependencies
+      run: sudo apt install nasm binutils gcc gdb cmake libgmp-dev valgrind
+    - if: contains(github.head_ref, 'asm')
+      name: asm-tests
+      run: |
+        cd asm
+        mkdir build
+        cd build
+        cmake ..
+        make
+        cd ../tests
+        ./test_256.sh
+    - if: contains(github.head_ref, 'vector')
+      name: vector-tests-valgrind
+      run: |
+        cd vector
+        mkdir cmake-build-release
+        cd cmake-build-release
+        cmake .. -DCMAKE_BUILD_TYPE=Release
+        make
+        valgrind --tool=memcheck --gen-suppressions=all --leak-check=full --leak-resolution=med --track-origins=yes --vgdb=no --error-exitcode=1 ./vector_testing
+        
+    - if: contains(github.head_ref, 'bigint')
+      name: bigint-tests-valgrind
+      run: |
+        cd bigint
+        mkdir cmake-build-release
+        cd cmake-build-release
+        cmake .. -DCMAKE_BUILD_TYPE=Release
+        make
+        valgrind --tool=memcheck --gen-suppressions=all --leak-check=full --leak-resolution=med --track-origins=yes --vgdb=no --error-exitcode=1 ./big_integer_testing
+    - if: contains(github.head_ref, 'bigint-opt')
+      name: bigint-opt-tests-valgrind
+      run: |
+        cd bigint-optimized
+        mkdir cmake-build-release
+        cd cmake-build-release
+        cmake .. -DCMAKE_BUILD_TYPE=Release
+        make
+        valgrind --tool=memcheck --gen-suppressions=all --leak-check=full --leak-resolution=med --track-origins=yes --vgdb=no --error-exitcode=1 ./big_integer_testing
+
