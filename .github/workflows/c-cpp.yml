@@ -18,7 +18,7 @@ jobs:
     - uses: actions/checkout@v1
     - name: dependencies
       run: sudo apt install nasm binutils gcc gdb cmake libgmp-dev valgrind
-    - if: contains(github.head_ref, 'asm')
+    - if: ${{ github.head_ref == 'asm' }}
       name: asm-tests
       run: |
         cd asm
@@ -28,7 +28,7 @@ jobs:
         make
         cd ../tests
         ./test_256.sh
-    - if: contains(github.head_ref, 'vector')
+    - if: ${{ github.head_ref == 'vector' }}
       name: vector-tests-valgrind
       run: |
         cd vector
@@ -37,8 +37,16 @@ jobs:
         cmake .. -DCMAKE_BUILD_TYPE=Release
         make
         valgrind --tool=memcheck --gen-suppressions=all --leak-check=full --leak-resolution=med --track-origins=yes --vgdb=no --error-exitcode=1 ./vector_testing
-        
-    - if: contains(github.head_ref, 'bigint')
+    - if: ${{ github.head_ref == 'vector' }}
+      name: vector-tests-debug
+      run: |
+        cd vector
+        mkdir cmake-build-debug
+        cd cmake-build-debug
+        cmake .. -DCMAKE_BUILD_TYPE=Debug
+        make
+        ./vector_testing    
+    - if: ${{ github.head_ref == 'bigint' }}
       name: bigint-tests-valgrind
       run: |
         cd bigint
@@ -47,7 +55,7 @@ jobs:
         cmake .. -DCMAKE_BUILD_TYPE=Release
         make
         valgrind --tool=memcheck --gen-suppressions=all --leak-check=full --leak-resolution=med --track-origins=yes --vgdb=no --error-exitcode=1 ./big_integer_testing
-    - if: contains(github.head_ref, 'bigint-opt')
+    - if: ${{ github.head_ref == 'bigint-opt' }}
       name: bigint-opt-tests-valgrind
       run: |
         cd bigint-optimized
